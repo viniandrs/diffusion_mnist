@@ -1,0 +1,7 @@
+articles/*
+data/*
+*__pycache__*
+.vscode
+
+weights/*
+!weights/*.pth
