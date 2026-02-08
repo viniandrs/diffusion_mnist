@@ -19,7 +19,7 @@ class Hyperparameters:
     n_cfeat: int = 10 # context vector is of size 10
     height: int = 28 # 28x28 image
     n_channels: int = 1
-    save_dir: str = 'weights/'
+    save_dir: str = 'weights/train'
 
     # training hyperparams
     n_epochs: int = 32

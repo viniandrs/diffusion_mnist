@@ -6,6 +6,14 @@ import matplotlib
 from diffusion_mnist import DiffMNISTGenerator
 matplotlib.use('Agg')  # Use non-interactive backend
 
+@st.cache_resource
+def load_model(model_name, seed):    
+    st.write(f"⏳ Loading {model_name}...")  # This will show only on cache miss
+    model = DiffMNISTGenerator(model_name, seed)
+    st.write(f"✅ {model_name} loaded successfully!")
+    
+    return model
+
 st.set_page_config(
     page_title="Diffusion MNIST Generator",
     page_icon="🎨",
@@ -24,58 +32,40 @@ with st.sidebar:
     selected_model = st.selectbox(
         "Select Diffusion Model",
         model_options,
-        help="Choose which diffusion model architecture to use"
+        help="Choose which diffusion model architecture to use",
     )
     
     # Digit selection with a numeric keyboard
     st.subheader("Select Digit")
     col1, col2, col3 = st.columns(3)
-    selected_digit = 0
+    if 'selected_digit' not in st.session_state:
+        st.session_state.selected_digit = 0
     
     with col1:
         if st.button("1", use_container_width=True):
-            selected_digit = 1
+            st.session_state.selected_digit = 1
         if st.button("4", use_container_width=True):
-            selected_digit = 4
+            st.session_state.selected_digit = 4
         if st.button("7", use_container_width=True):
-            selected_digit = 7
+            st.session_state.selected_digit = 7
     
     with col2:
         if st.button("2", use_container_width=True):
-            selected_digit = 2
+            st.session_state.selected_digit = 2
         if st.button("5", use_container_width=True):
-            selected_digit = 5
+            st.session_state.selected_digit = 5
         if st.button("8", use_container_width=True):
-            selected_digit = 8
+            st.session_state.selected_digit = 8
         if st.button("0", use_container_width=True):
-            selected_digit = 0
+            st.session_state.selected_digit = 0
     
     with col3:
         if st.button("3", use_container_width=True):
-            selected_digit = 3
+            st.session_state.selected_digit = 3
         if st.button("6", use_container_width=True):
-            selected_digit = 6
+            st.session_state.selected_digit = 6
         if st.button("9", use_container_width=True):
-            selected_digit = 9
-    
-    # Alternatively, use a number input
-    # selected_digit = st.number_input(
-    #     "Or enter digit (0-9)",
-    #     min_value=0,
-    #     max_value=9,
-    #     value=0,
-    #     step=1
-    # )
-    
-    # Generation parameters
-    # st.subheader("Generation Parameters")
-    # num_timesteps = st.slider(
-    #     "Number of timesteps",
-    #     min_value=10,
-    #     max_value=1000,
-    #     value=50,
-    #     help="More timesteps = better quality but slower generation"
-    # )
+            st.session_state.selected_digit = 9
     
     # seed control
     seed = st.number_input(
@@ -110,20 +100,21 @@ with col2:
         st.success(f"✅ {selected_model} weights loaded")
     else:
         st.warning(f"⚠️ {selected_model} weights not found")
-        st.info("Place model weights in ./weights/ directory")
+        st.info("Place model weights in \'weights\' directory")
     
     # Display selected options
     st.metric("Selected Model", selected_model)
-    st.metric("Selected Digit", selected_digit)
+    st.metric("Selected Digit", st.session_state.selected_digit)
 
 # When generate button is clicked
 if generate_button:
-    with st.spinner(f"Generating digit {selected_digit} using {selected_model}..."):
+    digit = st.session_state.selected_digit
+    with st.spinner(f"Generating digit {digit} using {selected_model}..."):
         # Initialize model and diffusion process
-        model = DiffMNISTGenerator(selected_model, seed)
+        model = load_model(selected_model, seed)
 
         try:
-            (final_img, timestamps) = model.generate(selected_digit)
+            (final_img, timestamps) = model.generate(digit)
 
         except Exception as e:
             st.error(f"Error during generation: {str(e)}")
@@ -133,7 +124,7 @@ if generate_button:
         # st.session_state["timestamp"] = timestamp + 1
         
         # Display the final image
-        placeholder.image(final_img, caption=f"Generated digit: {selected_digit}", width='stretch')
+        placeholder.image(final_img, caption=f"Generated digit: {digit}", width='stretch')
         
         # Display success message
         # st.success(f"✅ Generation complete! GIF saved to {gif_path}")

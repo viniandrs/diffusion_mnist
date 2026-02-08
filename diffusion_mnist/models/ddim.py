@@ -11,11 +11,6 @@ class DDIMGenerator(nn.Module):
     def __init__(self, weights_path: Path = 'weights/ddim.pt'):
         super(self).__init__()
         self.model = ContextUnet(in_channels=1)
-        try:
-            self.model.load_state_dict(torch.load(weights_path))
-        except FileNotFoundError:
-            print("Model weights not found. Try running training scripts before inference.")
-            raise
 
         # construct DDPM noise schedule
         b_t = (hp.beta2 - hp.beta1) * torch.linspace(0, 1, hp.timesteps + 1, device=hp.DEVICE) + hp.beta1
@@ -27,7 +22,10 @@ class DDIMGenerator(nn.Module):
         self.a_t = a_t
         self.ab_t = ab_t
 
-    def forward(self, x, c=None):
+    def load_weights(self):
+        raise NotImplementedError()
+
+    def sample_with_context(self, x, c=None):
 
         # x_T ~ N(0, 1), sample initial noise
         samples = torch.randn(x.shape[0], hp.n_channels, hp.height, hp.height).to(hp.DEVICE)  
@@ -48,7 +46,7 @@ class DDIMGenerator(nn.Module):
 
             eps = self.model(samples, t, c)    # predict noise e_(x_t,t)
             samples = self._denoise(samples, i, i - step_size, eps)
-            intermediate.append(samples.detach().cpu().numpy())
+            intermediate.append(samples.detach().cpu())
 
         intermediate = torch.stack(intermediate)
         return samples, intermediate

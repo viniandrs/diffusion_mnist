@@ -1,21 +1,13 @@
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
 from pathlib import Path
 
 from .context_unet import ContextUnet
 from ..hyperparams import Hyperparameters as hp
 
-class DDPMGenerator(nn.Module):
-    def __init__(self, weights_path: Path = 'weights/ddpm.pt'):
+class DDPMGenerator():
+    def __init__(self):
         super().__init__()
         self.model = ContextUnet(in_channels=1)
-        try:
-            self.model.load_state_dict(torch.load(weights_path))
-        except FileNotFoundError:
-            print("Model weights not found. Try running training scripts before inference.")
-            raise
 
         # construct DDPM noise schedule
         b_t = (hp.beta2 - hp.beta1) * torch.linspace(0, 1, hp.timesteps + 1, device=hp.DEVICE) + hp.beta1
@@ -27,13 +19,16 @@ class DDPMGenerator(nn.Module):
         self.a_t = a_t
         self.ab_t = ab_t
 
-    def forward(self, x, c=None):
+    def load_weights(self):
+        self.model.load_state_dict(torch.load('weights/ddpm.pt'))
+
+    def sample_with_context(self, x, c=None):
 
         # x_T ~ N(0, 1), sample initial noise
         samples = torch.randn(x.shape[0], hp.n_channels, hp.height, hp.height).to(hp.DEVICE)  
 
         # array to keep track of generated steps for plotting
-        intermediate = [] 
+        intermediates = [] 
         save_rate = 20
 
         # for each timestep
@@ -49,10 +44,10 @@ class DDPMGenerator(nn.Module):
             eps = self.model(samples, t, c)    # predict noise e_(x_t,t, ctx)
             samples = self._denoise(samples, i, eps, z)
             if i % save_rate==0 or i==hp.timesteps or i<8:
-                intermediate.append(samples.detach().cpu().numpy())
+                intermediates.append(samples.squeeze(0).detach().cpu())
 
-        intermediate = torch.stack(intermediate)
-        return samples, intermediate
+        intermediates = torch.stack(intermediates)
+        return samples, intermediates
     
     # helper function; removes the predicted noise (but adds some noise back in to avoid collapse)
     def _denoise(self, x, t, pred_noise, z=None):
