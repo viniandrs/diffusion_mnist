@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import torch
 from pathlib import Path
 
@@ -22,7 +24,7 @@ class DDPMGenerator():
     def load_weights(self):
         self.model.load_state_dict(torch.load('weights/ddpm.pt'))
 
-    def sample_with_context(self, x, c=None):
+    def sample_with_context(self, x, ctx=None, grad=True):
 
         # x_T ~ N(0, 1), sample initial noise
         samples = torch.randn(x.shape[0], hp.n_channels, hp.height, hp.height).to(hp.DEVICE)  
@@ -33,7 +35,7 @@ class DDPMGenerator():
 
         # for each timestep
         for i in range(hp.timesteps, 0, -1):
-            print(f'sampling timestep {i:3d}', end='\r')
+            # print(f'sampling timestep {i:3d}', end='\r')
 
             # reshape time tensor
             t = torch.tensor([i / hp.timesteps])[:, None, None, None].to(hp.DEVICE)
@@ -41,7 +43,9 @@ class DDPMGenerator():
             # sample some random noise to inject back in. For i = 1, don't add back in noise
             z = torch.randn_like(samples) if i > 1 else 0
 
-            eps = self.model(samples, t, c)    # predict noise e_(x_t,t, ctx)
+            with torch.set_grad_enabled(grad):
+                eps = self.model(samples, t, ctx)    # predict noise e_(x_t, t, ctx)
+            
             samples = self._denoise(samples, i, eps, z)
             if i % save_rate==0 or i==hp.timesteps or i<8:
                 intermediates.append(samples.squeeze(0).detach().cpu())

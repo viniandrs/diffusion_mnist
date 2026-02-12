@@ -124,7 +124,7 @@ if generate_button:
         # st.session_state["timestamp"] = timestamp + 1
         
         # Display the final image
-        placeholder.image(final_img, caption=f"Generated digit: {digit}", width='stretch')
+        placeholder.image(final_img.transpose(1,2,0), caption=f"Generated digit: {digit}", width='stretch')
         
         # Display success message
         # st.success(f"✅ Generation complete! GIF saved to {gif_path}")

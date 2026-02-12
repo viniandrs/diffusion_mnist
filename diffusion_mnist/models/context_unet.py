@@ -131,7 +131,7 @@ class UnetUp(nn.Module):
 
 
 class ContextUnet(nn.Module):
-    def __init__(self, in_channels, n_feat=64, n_cfeat=10, height=28):  # cfeat - context features
+    def __init__(self, in_channels=1, n_feat=64, n_cfeat=10, height=28):  # cfeat - context features
         super(ContextUnet, self).__init__()
 
         # number of input channels, number of intermediate feature maps and number of classes

@@ -25,7 +25,7 @@ class DDIMGenerator(nn.Module):
     def load_weights(self):
         raise NotImplementedError()
 
-    def sample_with_context(self, x, c=None):
+    def sample_with_context(self, x, c=None, grad=True):
 
         # x_T ~ N(0, 1), sample initial noise
         samples = torch.randn(x.shape[0], hp.n_channels, hp.height, hp.height).to(hp.DEVICE)  
@@ -44,7 +44,8 @@ class DDIMGenerator(nn.Module):
             # reshape time tensor
             t = torch.tensor([i / hp.timesteps])[:, None, None, None].to(hp.DEVICE)
 
-            eps = self.model(samples, t, c)    # predict noise e_(x_t,t)
+            with torch.set_grad_enabled(grad):
+                eps = self.model(samples, t, c)    # predict noise e_(x_t,t)
             samples = self._denoise(samples, i, i - step_size, eps)
             intermediate.append(samples.detach().cpu())
 

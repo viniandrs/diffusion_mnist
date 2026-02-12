@@ -1,16 +1,17 @@
 import torch
-from torch import nn
-from torch.nn import functional as F
-from torch import Tensor
 
-class DummyNN(nn.Module):
+class DummyNN():
     def __init__(self):
         super().__init__()
 
-    def sample_with_context(self, *args):
+    def sample_with_context(self, *args, **kwargs):
         samples = torch.randn(1, 1, 28, 28)
         intermediate = torch.randn(20, 1, 28, 28)
+
         return samples, intermediate
     
     def load_weights(self):
-        pass
+        try:
+            torch.load('weights/dummy.pt')
+        except:
+            raise FileNotFoundError('Weight file not found for model Dummy')

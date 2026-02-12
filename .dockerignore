@@ -1,0 +1,12 @@
+*__pycache__*
+.venv/
+.git/
+README.md
+.vscode/
+.idea/
+notebooks/
+results/
+.dockerignore
+.gitignore
+data/
+Dockerfile

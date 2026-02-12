@@ -14,7 +14,6 @@ class DiffMNISTGenerator:
                 self.model = models.DDPMGenerator()
             case "DDIM":
                 self.model = models.DDIMGenerator()
-                self.model.load_state_dict(torch.load('weights/ddim.pt'))
             case "Dummy":
                 self.model = models.DummyNN()
             case _:
@@ -28,7 +27,7 @@ class DiffMNISTGenerator:
         # x_T ~ N(0, 1), sample initial noise
         samples_0 = torch.randn(1, Hyperparameters.n_channels, Hyperparameters.height, Hyperparameters.height).to(Hyperparameters.DEVICE)  
 
-        samples_unorm, intermediates_unorm = self.model.sample_with_context(samples_0, context)
+        samples_unorm, intermediates_unorm = self.model.sample_with_context(samples_0, context, grad=False)
         
         # normalizing tensors to [0, 1]
         samples_min = samples_unorm.view(samples_unorm.shape[0], -1).min(dim=1)[0]
@@ -36,12 +35,12 @@ class DiffMNISTGenerator:
         samples = (samples_unorm - samples_min) / (samples_max - samples_min)
 
         intermediates_min = intermediates_unorm.view(intermediates_unorm.shape[0], -1).min(dim=1)[0][:,None,None,None]
-        intermediates_max = intermediates_unorm.view(intermediates_unorm.shape[0], -1).min(dim=1)[0][:,None,None,None]
+        intermediates_max = intermediates_unorm.view(intermediates_unorm.shape[0], -1).max(dim=1)[0][:,None,None,None]
         intermediates = (intermediates_unorm - intermediates_min) / (intermediates_max - intermediates_min)
 
-        # Convert the tensor to a PIL image
-        pil_image = transforms.ToPILImage()(samples[0])
-        pil_frames = [transforms.ToPILImage()(tensor) for tensor in intermediates]
+        # Convert the tensor to a numpy array
+        image = samples[0].numpy()
+        frames = [tensor.numpy()[0] for tensor in intermediates]
 
 
-        return pil_image, pil_frames
+        return image, frames
