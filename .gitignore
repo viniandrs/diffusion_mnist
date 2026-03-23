@@ -3,6 +3,7 @@ articles/*
 data/*
 *__pycache__*
 .vscode
-
+*.ipynb
 weights/*
 !weights/.gitkeep
+*.npy

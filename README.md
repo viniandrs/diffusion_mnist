@@ -1,6 +1,8 @@
-# Experiments with Diffusion Models
+# Generating MNIST digits with diffusion models
 
-Clean implementations of the main diffusion models techniques to generate MNIST digits with context embeddings. The codes used here are modifications of the notebooks provided in DeepLearning.ai's excellent course "How Diffusion Models Work".
+Simple implementations of the main diffusion models techniques to generate MNIST digits with context embeddings. In the notebooks folder you'll find notebooks to train the models with a brief explanation about the theory of DDPM and DDIM (DDIM not ready yet).
+
+There's also a Streamlit application to easily visualize the results.
 
 ## Results 
 

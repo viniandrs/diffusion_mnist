@@ -23,5 +23,5 @@ class Hyperparameters:
 
     # training hyperparams
     n_epochs: int = 32
-    batch_size: int = 100
+    batch_size: int = 128
     learning_rate: float = 1e-3
